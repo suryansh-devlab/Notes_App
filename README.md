@@ -1,56 +1,197 @@
-# Welcome to your Expo app 👋
+# MasterJi Notes App 📝
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+### React Native + Expo + TypeScript
 
-## Get started
+A clean, polished Notes application with dark/light theming, responsive layouts, and strict TypeScript throughout.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 📁 Project Structure
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+# NotesApp Folder Structure
 
 ```bash
-npm run reset-project
+NOTESAPP
+│
+├── .vscode/                # VS Code settings
+├── assets/                 # Images, icons, fonts
+├── node_modules/           # Installed packages
+│
+├── src/
+│   │
+│   ├── app/                # Expo Router screens
+│   │   ├── _layout.tsx     # Root layout/navigation
+│   │   └── index.tsx       # Entry screen
+│   │
+│   ├── constants/          # Constant values
+│   │   └── colors.ts       # App color palette
+│   │
+│   ├── data/               # Static/mock data
+│   │   └── notes.tsx       # Notes dummy data
+│   │
+│   └── screen/             # App screens
+│       ├── NotesEditorScreen.tsx
+│       └── NotesListScreen.tsx
+│
+├── .gitignore              # Ignored files
+├── app.json                # Expo configuration
+├── expo-env.d.ts           # Expo TypeScript types
+├── package-lock.json       # Dependency lock file
+├── package.json            # Project dependencies
+├── README.md               # Project documentation
+└── tsconfig.json           # TypeScript configuration
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## 🖥️ Screens
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### View 1 — Notes Listing Screen (`NotesListScreen.tsx`)
 
-## Learn more
+| Feature          | Detail                                                   |
+| ---------------- | -------------------------------------------------------- |
+| `FlatList<Note>` | Generic-typed list; 1 col on phone, 2 col on tablet      |
+| Note card        | Title, snippet (2 lines), timestamp, coloured accent bar |
+| Search           | Live `useMemo`-filtered by title + content               |
+| `Switch`         | Manual dark ↔ light override                             |
+| FAB              | Floating `+` button to create a new note                 |
+| `Pressable`      | Cards + FAB — both with press scale/opacity animations   |
 
-To learn more about developing your project with Expo, look at the following resources:
+### View 2 — Note Editor Screen (`NoteEditorScreen.tsx`)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Feature                | Detail                                             |
+| ---------------------- | -------------------------------------------------- |
+| `KeyboardAvoidingView` | `padding` on iOS / `height` on Android             |
+| `ImageBackground`      | Landscape hero with semi-transparent overlay       |
+| Title `TextInput`      | Single-line, max 120 chars                         |
+| Content `TextInput`    | Multiline, 2 000-char counter (turns red at limit) |
+| Back `Pressable`       | Glassmorphism circle button                        |
+| Save `Pressable`       | Pill button in nav + full-width at form bottom     |
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## ⚛️ Core Components Used
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| Component              | Screen(s)                     |
+| ---------------------- | ----------------------------- |
+| `FlatList`             | NotesListScreen               |
+| `TextInput`            | Both (search, title, content) |
+| `Pressable`            | Both (cards, FAB, Back, Save) |
+| `Switch`               | NotesListScreen               |
+| `KeyboardAvoidingView` | NoteEditorScreen              |
+| `ImageBackground`      | NoteEditorScreen              |
+| `ScrollView`           | NoteEditorScreen (form area)  |
+| `SafeAreaView`         | NotesListScreen               |
+| `StatusBar`            | Both                          |
+| `View`, `Text`         | Both                          |
+
+---
+
+## 🪝 Hooks Used
+
+| Hook                     | Type                 | Purpose                                                |
+| ------------------------ | -------------------- | ------------------------------------------------------ |
+| `useColorScheme()`       | `ColorSchemeName`    | Seeds `isDark` from system preference                  |
+| `useWindowDimensions()`  | `{ width, height }`  | Responsive columns, padding, hero height               |
+| `useState<Screen>`       | `'list' \| 'editor'` | Screen routing in App.tsx                              |
+| `useState<Note \| null>` | `Note \| null`       | Selected note passed to editor                         |
+| `useState<string>`       | `string`             | Search query, title, content                           |
+| `useMemo`                | `Note[]`             | Filters note list without re-render on unrelated state |
+
+---
+
+## 🎨 Styling — Full Requirements Met
+
+### `StyleSheet.create()`
+
+Every style rule lives inside `StyleSheet.create()`. No raw inline object literals.
+
+### `StyleSheet.flatten()`
+
+Used in `NoteEditorScreen.tsx` to merge the theme-coloured base input:
+
+```ts
+const inputBase = StyleSheet.flatten([
+  styles.inputBox,
+  {
+    backgroundColor: theme.inputBackground,
+    borderColor: theme.border,
+    color: theme.text,
+  },
+]);
+```
+
+### `StyleSheet.compose()`
+
+Used on every `Pressable` to conditionally add the pressed style:
+
+```ts
+style={({ pressed }) =>
+  StyleSheet.compose(cardBase, pressed ? styles.cardPressed : null)
+}
+```
+
+Also used to compose the per-field variant on top of `inputBase`:
+
+```ts
+const titleInputStyle = StyleSheet.compose(inputBase, styles.titleInput);
+const contentInputStyle = StyleSheet.compose(inputBase, styles.contentInput);
+```
+
+---
+
+## 🌓 Dark / Light Theme
+
+- `useColorScheme()` returns `'dark' | 'light' | null` and seeds the initial boolean
+- `Switch` in `NotesListScreen` lets users override at runtime
+- `lightTheme` / `darkTheme` are typed with the exported `Theme` interface
+- All colour references are resolved from the active theme — no hardcoded values in components
+
+---
+
+## 📱 Responsive Layout (`useWindowDimensions`)
+
+| Property           | Phone `< 768px`        | Tablet `≥ 768px`   |
+| ------------------ | ---------------------- | ------------------ |
+| Columns            | 1                      | 2                  |
+| H-padding (list)   | 20                     | 32                 |
+| H-padding (editor) | 20                     | 40                 |
+| Hero height        | `min(200, 26% height)` | 260                |
+| Card width         | `width − 40`           | `(width − 76) / 2` |
+
+---
+
+## 🔷 TypeScript Specifics
+
+```ts
+// Typed interfaces
+export interface Note { id: string; title: string; content: string; date: string; time: string; accentIndex: number; }
+export interface Theme { background: string; surface: string; ... }
+type Screen = 'list' | 'editor';
+
+// Typed generic FlatList
+<FlatList<Note> data={filteredNotes} renderItem={renderItem} ... />
+
+// Typed render item
+const renderItem = ({ item }: ListRenderItemInfo<Note>): React.JSX.Element => ...
+
+// Typed props interfaces for every component
+interface NotesListScreenProps { isDark: boolean; onToggleTheme: () => void; ... }
+interface NoteEditorScreenProps { note: Note | null; isDark: boolean; onBack: () => void; onSave: (note: Partial<Note>) => void; }
+```
+
+`tsconfig.json` uses `"strict": true` — no `any`, proper null checks throughout.
+
+---
+
+## ✨ UI Enhancements
+
+- Colour-coded left accent bars on each note card (6-colour palette cycling)
+- Press animations on cards (`scale 0.985`, `opacity 0.82`) and FAB (`scale 0.93`)
+- `android_ripple` on all `Pressable` elements
+- Character counter turns red at the 2 000-char limit
+- Empty state with emoji when search returns no results
+- Hero image dark overlay keeps nav text legible on any photo
+- Shadows on iOS, `elevation` on Android for card lift
+
+---
